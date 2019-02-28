@@ -288,12 +288,21 @@ int main(int argc, char* argv[]) {
 				int loop_score = 0;
 
 				uset<int> candidate_slides;
+				int candidate_count = 100;
 				for (auto tag : sl.tags) {
 					for (int i : tagToSlides[tag]) {
 						// if not visited
 						if (visited.find(i) == visited.end()) {
 							candidate_slides.insert(i);
+							candidate_count--;
 						}
+
+						if (candidate_count == 0) {
+							break;
+						}
+					}
+					if (candidate_count == 0) {
+						break;
 					}
 				}
 
@@ -309,6 +318,7 @@ int main(int argc, char* argv[]) {
 					for (int i = 0; i < slides.size(); i++) {
 						if (visited.find(i) == visited.end()) {
 							next_id = i;
+							break;
 						}
 					}
 				}
@@ -322,6 +332,9 @@ int main(int argc, char* argv[]) {
 				result.pub(next_id);
 
 				last_id = next_id;
+				if (result.size() % 1000 == 0) {
+					cerr << "Result size " << result.size() << endl;
+				}
 			}
 
 
@@ -340,7 +353,7 @@ int main(int argc, char* argv[]) {
 				best_params = v;
 				best_score = score;
 
-				if (best_score > total_best_score) {
+				//if (best_score > total_best_score) {
 					total_best_score = best_score;
 
 					ofstream outFile;
@@ -356,7 +369,7 @@ int main(int argc, char* argv[]) {
 						outFile << endl;
 					}
 					outFile.close();
-				}
+				//}
 			}
 
 			std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
