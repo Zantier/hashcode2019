@@ -33,7 +33,67 @@ struct bound {
     int steps;
 };
 
+umap<string,int> tagMap;
+
+
+struct photo {
+	int id;
+	set<int> tags;
+};
+struct slide {
+	set<int> tags;
+	vector<int> ids;
+};
+
+vector<photo> hs;
+vector<photo> vs;
+vector<slide> slides;
+
+vector<vector<int>> tagToSlides;
+
 int total_best_score = INT_MIN;
+
+int calcScore(int id1, int id2) {
+	auto& tags1 = slides[id1].tags;
+	auto& tags2 = slides[id2].tags;
+	auto it1 = tags1.begin();
+	auto it2 = tags2.begin();
+
+	// diagram order
+	vector<int> scores = {0,0,0};
+
+	while (it1 != tags1.end() || it2 != tags2.end()) {
+		if (it1 == tags1.end()) {
+			scores[2]++;
+			it2++;
+			continue;
+		}
+		if (it2 == tags2.end()) {
+			scores[0]++;
+			it1++;
+			continue;
+		}
+
+		if (*it1 < *it2) {
+			scores[0]++;
+			it1++;
+			continue;
+		}
+		if (*it1 > *it2) {
+			scores[2]++;
+			it2++;
+			continue;
+		}
+
+		// equal
+		scores[1]++;
+		it1++;
+		it2++;
+	}
+
+	int score = *min_element(all(scores));
+	return score;
+}
 
 int main(int argc, char* argv[]) {
 	// Get input filename from argv
@@ -52,8 +112,64 @@ int main(int argc, char* argv[]) {
 		cerr << "Unable to open " << inFilename << endl;
 		return 1;
 	}
-	int a,b;
-	inFile>>a>>b;
+
+	int N;
+	inFile>>N;
+	vector<photo> photos(N);
+	int tagIndex = 0;
+	for (int i = 0; i < N; i++) {
+		photo ph;
+		ph.id=i;
+
+		string V;
+		inFile>>V;
+		bool vertical = V[0] == 'V';
+		int tagN;
+		inFile>>tagN;
+		for (int j = 0; j < tagN; j++) {
+			string tag;
+			inFile>>tag;
+
+			// not in map
+			if (tagMap.find(tag) == tagMap.end()) {
+				tagMap[tag] = tagIndex;
+				tagIndex++;
+			}
+
+			ph.tags.insert(tagMap[tag]);
+		}
+
+		if (vertical) {
+			vs.pub(ph);
+		} else {
+			hs.pub(ph);
+		}
+	}
+	cerr << "Tags: " << tagIndex << endl;
+	tagToSlides.resize(tagIndex);
+
+	for (int i = 0; i < hs.size(); i++) {
+		slide sl;
+		sl.ids = vector<int>{hs[i].id};
+		sl.tags = hs[i].tags;
+		slides.pub(sl);
+	}
+	for (int i = 0; i < vs.size()/2; i++) {
+		slide sl;
+		sl.ids = vector<int>{vs[2*i].id, vs[2*i+1].id};
+		sl.tags = vs[2*i+1].tags;
+		for (auto& t : vs[2*i].tags) {
+			sl.tags.insert(t);
+		}
+		slides.pub(sl);
+	}
+
+	for (int i = 0; i < slides.size(); i++) {
+		slide& sl = slides[i];
+		for (auto& t : sl.tags) {
+			tagToSlides[t].pub(i);
+		}
+	}
 
 	inFile.close();
 
@@ -84,12 +200,12 @@ int main(int argc, char* argv[]) {
 
 	// Bounds
 	vector<bound> bs;
-	bs.push_back({"t1", 0, 5, 5});
-	bs.push_back({"t2", 1, 100, 5});
+	//bs.push_back({"t1", 0, 5, 5});
+	//bs.push_back({"t2", 1, 100, 5});
 	// bs.push_back({"t3", 3.2, 34, 8});
 
-	// Grid size
-	for (int x = 0; x < 5; x++) {
+	// Grid iterations
+	for (int x = 0; x < 1; x++) {
 
 		auto start = std::chrono::steady_clock::now();
 
@@ -150,10 +266,51 @@ int main(int argc, char* argv[]) {
 
 
 			// TODO: Solve problem
-			float score = 10000 - (v[0] - 3.5)*(v[0] - 3.5) - (v[1] - 60)*(v[1] - 60);
+			//float score = 10000 - (v[0] - 3.5)*(v[0] - 3.5) - (v[1] - 60)*(v[1] - 60);
 
+//struct photo {
+//	bool vertical;
+//	set<int> tags;
+//};
+			int score = 0;
 
+			uset<int> visited;
+			// slide IDs
+			vector<int> result;
 
+			result.pub(0);
+			int last_id = 0;
+			visited.insert(0);
+			while (true) {
+				slide& sl = slides[last_id];
+				int next_id = 0;
+				bool found = false;
+				for (auto tag : sl.tags) {
+					for (int i : tagToSlides[tag]) {
+						// if not visited
+						if (visited.find(i) == visited.end()) {
+							found = true;
+							next_id = i;
+							visited.insert(i);
+							break;
+						}
+					}
+
+					if (found) {
+						break;
+					}
+				}
+
+				if (!found) {
+					// Should just pick any one.
+					break;
+				}
+
+				score += calcScore(last_id, next_id);
+				result.pub(next_id);
+
+				last_id = next_id;
+			}
 
 
 
@@ -177,7 +334,15 @@ int main(int argc, char* argv[]) {
 					ofstream outFile;
 					string outFilename = problemName + "-" + to_string(best_score) + ".out";
 					outFile.open(outFilename);
-					outFile << "something" << endl;
+					outFile << result.size() << endl;
+					for (auto& s : result) {
+						string delim = "";
+						for (auto& id : slides[s].ids) {
+							outFile << delim << id;
+							delim = " ";
+						}
+						outFile << endl;
+					}
 					outFile.close();
 				}
 			}
