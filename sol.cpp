@@ -370,14 +370,14 @@ int main(int argc, char* argv[]) {
 						if (visited.find(i) == visited.end()) {
 							//candidate_slides.insert(i);
 							candidate_count--;
-							int temp_score = calcScore(slide_id, last_id);
+							int temp_score = calcScore(i, last_id);
 							if (temp_score > loop_score) {
 								loop_score = temp_score;
-								next_id = slide_id;
+								next_id = i;
 							} else if (temp_score == loop_score) {
-								if (slides[slide_id].tags.size() < slides[next_id].tags.size()) {
+								if (slides[i].tags.size() < slides[next_id].tags.size()) {
 									loop_score = temp_score;
-									next_id = slide_id;
+									next_id = i;
 								}
 							}
 
