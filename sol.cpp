@@ -133,7 +133,6 @@ int main(int argc, char* argv[]) {
 		omp_lock_t writelock;
 		omp_init_lock(&writelock);
 
-		float best_score = 0;
 		vector<float> best_params;
 
 #pragma omp parallel for
@@ -167,10 +166,10 @@ int main(int argc, char* argv[]) {
 				cerr << bs[i].name << ": " << v[i] << ", ";
 			}
 
-			if (score > best_score) {
+			if (score > bestScore) {
 				// TODO: save file
 				best_params = v;
-				best_score = score;
+				bestScore = score;
 			}
 
 			std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
@@ -182,7 +181,7 @@ int main(int argc, char* argv[]) {
 		}
 		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 		float total = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000000.0;
-		cerr << "Completed grid!! Time: " << total << " score: " << best_score << endl;
+		cerr << "Completed grid!! Time: " << total << " score: " << bestScore << endl;
 		cerr << "Best params: ";
 		for (float v : best_params)
 			cerr << " " << v;
