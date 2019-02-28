@@ -25,14 +25,16 @@
 
 using namespace std;
 
+int bestScore = INT_MIN;
+
 int main(int argc, char* argv[]) {
 	// Get input filename from argv
 	if (argc < 2) {
 		cerr << "need input filename (without .in)" << endl;
 		return 1;
 	}
-	string inFilename = argv[1];
-	inFilename += ".in";
+	string problemName = argv[1];
+	string inFilename = problemName + ".in";
 	cerr << "input file: " << inFilename << endl;
 
 	// Read input file
@@ -47,15 +49,26 @@ int main(int argc, char* argv[]) {
 
 	inFile.close();
 
+	// Get best score so far
 	DIR *dir;
 	struct dirent *ent;
 	if ((dir = opendir (".")) != NULL) {
 		while ((ent = readdir (dir)) != NULL) {
-			printf ("%s\n", ent->d_name);
+			string filename = ent->d_name;
+			string problemDash = problemName + "-";
+			if (filename.compare(0, problemDash.length(), problemDash) == 0) {
+				string scoreStr = filename.substr(problemDash.length(), filename.length() - problemDash.length() - 4);
+				int score = stoi(scoreStr);
+				if (score > bestScore) {
+					bestScore = score;
+				}
+			}
 		}
-		closedir (dir);
+		closedir(dir);
 	} else {
 		cerr << "Could not open directory" << endl;
 		return 1;
 	}
+
+	cerr << "Best score before starting: " << bestScore << endl;
 }
