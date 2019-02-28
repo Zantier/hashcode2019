@@ -33,7 +33,7 @@ struct bound {
     int steps;
 };
 
-int best_score = INT_MIN;
+int total_best_score = INT_MIN;
 
 int main(int argc, char* argv[]) {
 	// Get input filename from argv
@@ -67,8 +67,8 @@ int main(int argc, char* argv[]) {
 			if (filename.compare(0, problemDash.length(), problemDash) == 0) {
 				string scoreStr = filename.substr(problemDash.length(), filename.length() - problemDash.length() - 4);
 				int score = stoi(scoreStr);
-				if (score > best_score) {
-					best_score = score;
+				if (score > total_best_score) {
+					total_best_score = score;
 				}
 			}
 		}
@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
-	cerr << "Best score before starting: " << best_score << endl;
+	cerr << "Best score before starting: " << total_best_score << endl;
 
 	
 
@@ -133,6 +133,7 @@ int main(int argc, char* argv[]) {
 		omp_lock_t writelock;
 		omp_init_lock(&writelock);
 
+		int best_score = INT_MIN;
 		vector<float> best_params;
 
 #pragma omp parallel for
@@ -167,9 +168,18 @@ int main(int argc, char* argv[]) {
 			}
 
 			if (score > best_score) {
-				// TODO: save file
 				best_params = v;
 				best_score = score;
+
+				if (best_score > total_best_score) {
+					total_best_score = best_score;
+
+					ofstream outFile;
+					string outFilename = problemName + "-" + to_string(best_score) + ".out";
+					outFile.open(outFilename);
+					outFile << "something" << endl;
+					outFile.close();
+				}
 			}
 
 			std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
