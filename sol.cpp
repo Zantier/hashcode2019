@@ -195,7 +195,7 @@ int main(int argc, char* argv[]) {
 			continue;
 		}
 
-		for (int j = i+1; j < min(i+100, (int)vs.size()); j++) {
+		for (int j = i+1; j < min(i+1000, (int)vs.size()); j++) {
 			if (visitedVerticals.find(j) != visitedVerticals.end()) {
 				continue;
 			}
@@ -362,14 +362,25 @@ int main(int argc, char* argv[]) {
 				int next_id = -1;
 				int loop_score = 0;
 
-				uset<int> candidate_slides;
+				//uset<int> candidate_slides;
 				int candidate_count = 100;
 				for (auto tag : sl.tags) {
 					for (int i : tagToSlides[tag]) {
 						// if not visited
 						if (visited.find(i) == visited.end()) {
-							candidate_slides.insert(i);
+							//candidate_slides.insert(i);
 							candidate_count--;
+							int temp_score = calcScore(slide_id, last_id);
+							if (temp_score > loop_score) {
+								loop_score = temp_score;
+								next_id = slide_id;
+							} else if (temp_score == loop_score) {
+								if (slides[slide_id].tags.size() < slides[next_id].tags.size()) {
+									loop_score = temp_score;
+									next_id = slide_id;
+								}
+							}
+
 						}
 
 						if (candidate_count == 0) {
@@ -381,13 +392,13 @@ int main(int argc, char* argv[]) {
 					}
 				}
 
-				for (auto slide_id : candidate_slides) {
-					int temp_score = calcScore(slide_id, last_id);
-					if (temp_score > loop_score) {
-						loop_score = temp_score;
-						next_id = slide_id;
-					}
-				}
+				//for (auto slide_id : candidate_slides) {
+				//	int temp_score = calcScore(slide_id, last_id);
+				//	if (temp_score > loop_score) {
+				//		loop_score = temp_score;
+				//		next_id = slide_id;
+				//	}
+				//}
 
 				if (next_id == -1) {
 					for (int i = 0; i < slides.size(); i++) {
