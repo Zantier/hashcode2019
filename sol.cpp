@@ -274,6 +274,7 @@ int main(int argc, char* argv[]) {
 //};
 			int score = 0;
 
+			// visited slide IDs
 			uset<int> visited;
 			// slide IDs
 			vector<int> result;
@@ -283,30 +284,41 @@ int main(int argc, char* argv[]) {
 			visited.insert(0);
 			while (true) {
 				slide& sl = slides[last_id];
-				int next_id = 0;
-				bool found = false;
+				int next_id = -1;
+				int loop_score = 0;
+
+				uset<int> candidate_slides;
 				for (auto tag : sl.tags) {
 					for (int i : tagToSlides[tag]) {
 						// if not visited
 						if (visited.find(i) == visited.end()) {
-							found = true;
-							next_id = i;
-							visited.insert(i);
-							break;
+							candidate_slides.insert(i);
 						}
-					}
-
-					if (found) {
-						break;
 					}
 				}
 
-				if (!found) {
-					// Should just pick any one.
+				for (auto slide_id : candidate_slides) {
+					int temp_score = calcScore(slide_id, last_id);
+					if (temp_score > loop_score) {
+						loop_score = temp_score;
+						next_id = slide_id;
+					}
+				}
+
+				if (next_id == -1) {
+					for (int i = 0; i < slides.size(); i++) {
+						if (visited.find(i) == visited.end()) {
+							next_id = i;
+						}
+					}
+				}
+
+				if (next_id == -1) {
 					break;
 				}
 
-				score += calcScore(last_id, next_id);
+				score += loop_score;
+				visited.insert(next_id);
 				result.pub(next_id);
 
 				last_id = next_id;
