@@ -33,7 +33,7 @@ struct bound {
     int steps;
 };
 
-int bestScore = INT_MIN;
+int best_score = INT_MIN;
 
 int main(int argc, char* argv[]) {
 	// Get input filename from argv
@@ -67,8 +67,8 @@ int main(int argc, char* argv[]) {
 			if (filename.compare(0, problemDash.length(), problemDash) == 0) {
 				string scoreStr = filename.substr(problemDash.length(), filename.length() - problemDash.length() - 4);
 				int score = stoi(scoreStr);
-				if (score > bestScore) {
-					bestScore = score;
+				if (score > best_score) {
+					best_score = score;
 				}
 			}
 		}
@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
-	cerr << "Best score before starting: " << bestScore << endl;
+	cerr << "Best score before starting: " << best_score << endl;
 
 	
 
@@ -166,10 +166,10 @@ int main(int argc, char* argv[]) {
 				cerr << bs[i].name << ": " << v[i] << ", ";
 			}
 
-			if (score > bestScore) {
+			if (score > best_score) {
 				// TODO: save file
 				best_params = v;
-				bestScore = score;
+				best_score = score;
 			}
 
 			std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
@@ -181,7 +181,7 @@ int main(int argc, char* argv[]) {
 		}
 		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 		float total = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000000.0;
-		cerr << "Completed grid!! Time: " << total << " score: " << bestScore << endl;
+		cerr << "Completed grid!! Time: " << total << " score: " << best_score << endl;
 		cerr << "Best params: ";
 		for (float v : best_params)
 			cerr << " " << v;
