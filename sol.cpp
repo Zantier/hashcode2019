@@ -95,6 +95,45 @@ int calcScore(int id1, int id2) {
 	return score;
 }
 
+int overlap(set<int>& tags1, set<int>& tags2) {
+	auto it1 = tags1.begin();
+	auto it2 = tags2.begin();
+
+	// diagram order
+	vector<int> scores = {0,0,0};
+
+	while (it1 != tags1.end() || it2 != tags2.end()) {
+		if (it1 == tags1.end()) {
+			scores[2]++;
+			it2++;
+			continue;
+		}
+		if (it2 == tags2.end()) {
+			scores[0]++;
+			it1++;
+			continue;
+		}
+
+		if (*it1 < *it2) {
+			scores[0]++;
+			it1++;
+			continue;
+		}
+		if (*it1 > *it2) {
+			scores[2]++;
+			it2++;
+			continue;
+		}
+
+		// equal
+		scores[1]++;
+		it1++;
+		it2++;
+	}
+
+	return scores[1];
+}
+
 int main(int argc, char* argv[]) {
 	// Get input filename from argv
 	if (argc < 2) {
@@ -145,6 +184,40 @@ int main(int argc, char* argv[]) {
 			hs.pub(ph);
 		}
 	}
+
+	// Try to pair verticals with least overlap of tags
+	uset<int> visitedVerticals;
+
+	for (int i = 0; i < vs.size(); i++) {
+		int min_score = INT_MAX;
+		int best_index = -1;
+		if (visitedVerticals.find(i) != visitedVerticals.end()) {
+			continue;
+		}
+
+		for (int j = i+1; j < min(i+100, (int)vs.size()); j++) {
+			if (visitedVerticals.find(j) != visitedVerticals.end()) {
+				continue;
+			}
+
+			int score = overlap(vs[i].tags,vs[j].tags);
+			if (score < min_score) {
+				min_score = score;
+				best_index = j;
+			}
+		}
+
+		if (best_index != -1) {
+			slide sl;
+			sl.ids = vector<int>{vs[i].id, vs[best_index].id};
+			sl.tags = vs[i].tags;
+			for (auto& t : vs[best_index].tags) {
+				sl.tags.insert(t);
+			}
+			slides.pub(sl);
+		}
+	}
+
 	cerr << "Tags: " << tagIndex << endl;
 	tagToSlides.resize(tagIndex);
 
@@ -154,15 +227,15 @@ int main(int argc, char* argv[]) {
 		sl.tags = hs[i].tags;
 		slides.pub(sl);
 	}
-	for (int i = 0; i < vs.size()/2; i++) {
-		slide sl;
-		sl.ids = vector<int>{vs[2*i].id, vs[2*i+1].id};
-		sl.tags = vs[2*i+1].tags;
-		for (auto& t : vs[2*i].tags) {
-			sl.tags.insert(t);
-		}
-		slides.pub(sl);
-	}
+	//for (int i = 0; i < vs.size()/2; i++) {
+	//	slide sl;
+	//	sl.ids = vector<int>{vs[2*i].id, vs[2*i+1].id};
+	//	sl.tags = vs[2*i+1].tags;
+	//	for (auto& t : vs[2*i].tags) {
+	//		sl.tags.insert(t);
+	//	}
+	//	slides.pub(sl);
+	//}
 
 	for (int i = 0; i < slides.size(); i++) {
 		slide& sl = slides[i];
