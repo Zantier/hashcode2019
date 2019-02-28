@@ -210,6 +210,8 @@ int main(int argc, char* argv[]) {
 		if (best_index != -1) {
 			slide sl;
 			sl.ids = vector<int>{vs[i].id, vs[best_index].id};
+			visitedVerticals.insert(i);
+			visitedVerticals.insert(best_index);
 			sl.tags = vs[i].tags;
 			for (auto& t : vs[best_index].tags) {
 				sl.tags.insert(t);
