@@ -361,6 +361,7 @@ int main(int argc, char* argv[]) {
 				slide& sl = slides[last_id];
 				int next_id = -1;
 				int loop_score = 0;
+				float float_loop_score = -1000000;
 
 				//uset<int> candidate_slides;
 				int candidate_count = 100;
@@ -371,14 +372,11 @@ int main(int argc, char* argv[]) {
 							//candidate_slides.insert(i);
 							candidate_count--;
 							int temp_score = calcScore(i, last_id);
-							if (temp_score > loop_score) {
+							float float_score = temp_score - slides[i].tags.size()*0.1;
+							if (float_score > float_loop_score) {
 								loop_score = temp_score;
+								float_loop_score = float_score;
 								next_id = i;
-							} else if (temp_score == loop_score) {
-								if (slides[i].tags.size() < slides[next_id].tags.size()) {
-									loop_score = temp_score;
-									next_id = i;
-								}
 							}
 
 						}
